@@ -1,5 +1,7 @@
 package com.app.inventario.di
 
+import com.app.inventario.data.local.datastore.UserDataStore
+import com.app.inventario.data.remote.AuthInterceptor
 import com.app.inventario.data.remote.api.IAuthApi
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import dagger.Module
@@ -22,15 +24,15 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideOkHttp(): OkHttpClient {
+    fun provideOkHttp(authInterceptor: AuthInterceptor): OkHttpClient {
         val logging = HttpLoggingInterceptor().apply {
             level = HttpLoggingInterceptor.Level.BODY
         }
         return OkHttpClient.Builder()
             .addInterceptor(logging)
+            .addInterceptor(authInterceptor)
             .build()
     }
-
 
     @Provides
     @Singleton
@@ -38,7 +40,6 @@ object NetworkModule {
         ignoreUnknownKeys = true
         isLenient = true
     }
-
 
     @Provides
     @Singleton
@@ -51,6 +52,9 @@ object NetworkModule {
             .build()
     }
 
+    @Provides
+    @Singleton
+    fun provideAuthInterceptor(userDataStore: UserDataStore): AuthInterceptor = AuthInterceptor(userDataStore)
 
     @Provides
     @Singleton

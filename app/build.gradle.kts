@@ -63,6 +63,7 @@ dependencies {
     implementation(libs.serialization.json)
     implementation(libs.hilt.android)
     implementation(libs.hilt.navigation.compose)
+    implementation(libs.androidx.datastore)
 
     ksp(libs.hilt.compiler)
 
