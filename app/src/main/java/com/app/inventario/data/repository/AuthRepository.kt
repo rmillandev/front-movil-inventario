@@ -11,7 +11,7 @@ class AuthRepository @Inject constructor(
     private val api: IAuthApi
 ) {
 
-    suspend fun login(username: String, password: String): Flow<Result<AuthLoginResponseDto>> {
+    fun login(username: String, password: String): Flow<Result<AuthLoginResponseDto>> {
         return apiCall {
             api.login(AuthLoginDto(
                 username = username,
