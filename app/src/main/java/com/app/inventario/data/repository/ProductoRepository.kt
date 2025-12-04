@@ -1,18 +1,18 @@
 package com.app.inventario.data.repository
 
 import com.app.inventario.data.core.apiCall
-import com.app.inventario.data.remote.api.ICategoriaApi
-import com.app.inventario.data.remote.dto.category.CategoriaDto
+import com.app.inventario.data.remote.api.IProductoApi
+import com.app.inventario.data.remote.dto.producto.ProductoDto
 import com.app.inventario.data.remote.dto.success.CreateResponseDto
 import com.app.inventario.data.remote.dto.success.ReadResponseDto
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
-class CategoriaRepository @Inject constructor(
-    private val api: ICategoriaApi
+class ProductoRepository @Inject constructor(
+    private val api: IProductoApi
 ) {
 
-    fun getAll(pageNumber: Int? = null, pageSize: Int? = null): Flow<Result<ReadResponseDto<CategoriaDto>>> {
+    fun getAll(pageNumber: Int? = null, pageSize: Int? = null): Flow<Result<ReadResponseDto<ProductoDto>>> {
         return apiCall {
             api.getAll(
                 pageNumber = pageNumber,
@@ -21,15 +21,20 @@ class CategoriaRepository @Inject constructor(
         }
     }
 
-    fun getById(id: Int): Flow<Result<CategoriaDto>> {
-        return apiCall { api.getById(id) }
+    fun getStockBajo(pageNumber: Int? = null, pageSize: Int? = null): Flow<Result<ReadResponseDto<ProductoDto>>> {
+        return apiCall {
+            api.getStockBajo(
+                pageNumber = pageNumber,
+                pageSize = pageSize
+            )
+        }
     }
 
-    fun create(data: CategoriaDto): Flow<Result<CreateResponseDto<CategoriaDto>>> {
+    fun create(data: ProductoDto): Flow<Result<CreateResponseDto<ProductoDto>>> {
         return apiCall { api.create(data) }
     }
 
-    fun update(id: Int, data: CategoriaDto): Flow<Result<Unit>> {
+    fun update(id: Int, data: ProductoDto): Flow<Result<Unit>> {
         return apiCall {
             api.update(
                 id = id,

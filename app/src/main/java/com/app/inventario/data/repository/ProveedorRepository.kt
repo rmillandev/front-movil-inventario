@@ -12,7 +12,7 @@ class ProveedorRepository @Inject constructor(
     private val api: IProveedorApi
 ) {
 
-    fun getAll(pageNumber: Int, pageSize: Int): Flow<Result<ReadResponseDto<ProveedorDto>>> {
+    fun getAll(pageNumber: Int? = null, pageSize: Int? = null): Flow<Result<ReadResponseDto<ProveedorDto>>> {
         return apiCall {
             api.getAll(
                 pageNumber = pageNumber,

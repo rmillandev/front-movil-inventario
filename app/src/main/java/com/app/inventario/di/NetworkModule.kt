@@ -4,6 +4,7 @@ import com.app.inventario.data.local.datastore.UserDataStore
 import com.app.inventario.data.remote.AuthInterceptor
 import com.app.inventario.data.remote.api.IAuthApi
 import com.app.inventario.data.remote.api.ICategoriaApi
+import com.app.inventario.data.remote.api.IProductoApi
 import com.app.inventario.data.remote.api.IProveedorApi
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import dagger.Module
@@ -69,5 +70,9 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideProveedorApi(retrofit: Retrofit): IProveedorApi = retrofit.create(IProveedorApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideProductoApi(retrofit: Retrofit): IProductoApi = retrofit.create(IProductoApi::class.java)
 
 }
