@@ -4,8 +4,10 @@ import com.app.inventario.data.local.datastore.UserDataStore
 import com.app.inventario.data.remote.AuthInterceptor
 import com.app.inventario.data.remote.api.IAuthApi
 import com.app.inventario.data.remote.api.ICategoriaApi
+import com.app.inventario.data.remote.api.IMovimientoInventarioApi
 import com.app.inventario.data.remote.api.IProductoApi
 import com.app.inventario.data.remote.api.IProveedorApi
+import com.app.inventario.data.remote.api.IUsuarioApi
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import dagger.Module
 import dagger.Provides
@@ -17,7 +19,6 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import javax.inject.Singleton
-
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -74,5 +75,13 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideProductoApi(retrofit: Retrofit): IProductoApi = retrofit.create(IProductoApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideMovimientoInventarioApi(retrofit: Retrofit): IMovimientoInventarioApi = retrofit.create(IMovimientoInventarioApi::class.java)
+
+    @Provides
+    @Singleton
+    fun provideUsuarioApi(retrofit: Retrofit): IUsuarioApi = retrofit.create(IUsuarioApi::class.java)
 
 }
