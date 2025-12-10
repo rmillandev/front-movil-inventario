@@ -1,15 +1,21 @@
+@file:Suppress("COMPOSE_APPLIER_CALL_MISMATCH")
+
 package com.app.inventario.ui.screen.auth
 
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.Icon
@@ -26,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -90,35 +97,54 @@ fun LoginScreen(
         )
     }
 
-    Box(
+    BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
-        contentAlignment = Alignment.Center
+            .background(MaterialTheme.colorScheme.background)
     ) {
+        ResponsiveLoginContent(
+            maxWidth = maxWidth,
+            authViewModel = authViewModel
+        )
+    }
+}
 
+@Composable
+fun ResponsiveLoginContent(
+    maxWidth: Dp,
+    authViewModel: AuthViewModel
+) {
+    val isMobile = maxWidth < 600.dp
+    val horizontalPadding = if (isMobile) 24.dp else 48.dp
+    val verticalSpacing = if (isMobile) 16.dp else 24.dp
+    val titleSize = if (isMobile) 32.sp else 40.sp
+    val iconSize = if (isMobile) 80.dp else 120.dp
+
+    if (isMobile) {
         Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontalPadding),
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(24.dp)
+            verticalArrangement = Arrangement.Center
         ) {
-
             Icon(
                 imageVector = Icons.Default.Lock,
-                contentDescription = null,
+                contentDescription = "Lock Icon",
                 tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(80.dp)
+                modifier = Modifier.size(iconSize)
             )
 
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(verticalSpacing))
 
             Text(
                 text = "Login",
-                fontSize = 32.sp,
+                fontSize = titleSize,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
             )
 
-            Spacer(Modifier.height(32.dp))
+            Spacer(Modifier.height(verticalSpacing * 2))
 
             CustomOutlinedTextField(
                 value = authViewModel.username,
@@ -127,7 +153,7 @@ fun LoginScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(verticalSpacing))
 
             CustomOutlinedTextField(
                 value = authViewModel.password,
@@ -138,13 +164,91 @@ fun LoginScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(verticalSpacing * 1.5f))
 
             CustomButton(
                 text = "Login",
                 onClick = { authViewModel.login() }
             )
         }
-    }
+    } else {
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontalPadding)
+                .verticalScroll(rememberScrollState()),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(end = 32.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Lock,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(iconSize)
+                )
 
+                Spacer(Modifier.height(verticalSpacing))
+
+                Text(
+                    text = "Bienvenido",
+                    fontSize = 44.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+
+                Spacer(Modifier.height(8.dp))
+
+                Text(
+                    text = "Inicia sesión para continuar",
+                    fontSize = 20.sp,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(start = 32.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "Login",
+                    fontSize = titleSize,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+
+                Spacer(Modifier.height(verticalSpacing * 2))
+
+                CustomOutlinedTextField(
+                    value = authViewModel.username,
+                    onValueChange = { authViewModel.username = it },
+                    label = "Username",
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(Modifier.height(verticalSpacing))
+
+                CustomOutlinedTextField(
+                    value = authViewModel.password,
+                    onValueChange = { authViewModel.password = it },
+                    label = "Password",
+                    keyboardType = KeyboardType.Password,
+                    isPassword = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(Modifier.height(verticalSpacing * 1.5f))
+
+                CustomButton(
+                    text = "Login",
+                    onClick = { authViewModel.login() }
+                )
+            }
+        }
+    }
 }

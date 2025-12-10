@@ -1,8 +1,10 @@
 package com.app.inventario.data.core
 
 import com.app.inventario.data.remote.dto.error.ErrorParser
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import retrofit2.Response
 import java.io.IOException
 
@@ -26,8 +28,8 @@ fun <T> apiCall(call: suspend () -> Response<T>): Flow<Result<T>> = flow {
         }
 
     } catch (e: IOException) {
-        emit(Result.failure(Exception("No internet connection")))
+        emit(Result.failure(Exception("No internet connection ${e.message}")))
     } catch (e: Exception) {
         emit(Result.failure(e))
     }
-}
+}.flowOn(Dispatchers.IO)
