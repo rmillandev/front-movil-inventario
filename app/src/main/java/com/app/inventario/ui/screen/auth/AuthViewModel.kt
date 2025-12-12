@@ -1,8 +1,5 @@
 package com.app.inventario.ui.screen.auth
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.app.inventario.data.local.datastore.UserDataStore
@@ -11,10 +8,13 @@ import com.app.inventario.data.remote.dto.auth.AuthLoginResponseDto
 import com.app.inventario.data.repository.AuthRepository
 import com.app.inventario.ui.state.UiState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -25,34 +25,41 @@ class AuthViewModel @Inject constructor(
 ): ViewModel() {
 
     // Variables
-    var username by mutableStateOf("")
-    var password by mutableStateOf("")
-
+    private val _loginUiState = MutableStateFlow(LoginUiState())
+    val loginUiState: StateFlow<LoginUiState> = _loginUiState
 
 
 
     // Estado UI
-    private val erroresState = MutableStateFlow<List<String>>(emptyList())
-    val errores: StateFlow<List<String>> = erroresState
+    private val _loginResult = MutableStateFlow<UiState<AuthLoginResponseDto>>(UiState.IdLe)
+    val loginResult: StateFlow<UiState<AuthLoginResponseDto>> = _loginResult
 
-    private val _loginState = MutableStateFlow<UiState<AuthLoginResponseDto>>(UiState.IdLe)
-    val loginState: StateFlow<UiState<AuthLoginResponseDto>> = _loginState
+    private val _loginEvents = MutableSharedFlow<LoginEvent>()
+    val loginEvents = _loginEvents.asSharedFlow()
+
+
+    fun updateUsername(newUsername: String) {
+        _loginUiState.update { currentState ->
+            currentState.copy(username = newUsername)
+        }
+    }
+
+    fun updatePassword(newPassword: String) {
+        _loginUiState.update { currentState ->
+            currentState.copy(password = newPassword)
+        }
+    }
 
 
     // Metodos Privados
-    private fun validarCampos(): Boolean = username.isNotEmpty() && password.isNotEmpty()
+    private fun validarCampos(): Boolean = _loginUiState.value.username.isNotEmpty() && _loginUiState.value.password.isNotEmpty()
+
 
 
     // Metodos Auxiliares
     fun limpiarCampos() {
-        username = ""
-        password = ""
+        _loginUiState.update { LoginUiState() }
     }
-
-    fun limpiarErrorres() {
-        erroresState.value = emptyList()
-    }
-
 
 
     // Metodos Publicos
@@ -61,29 +68,34 @@ class AuthViewModel @Inject constructor(
         viewModelScope.launch {
 
             if (!validarCampos()) {
-                erroresState.value = listOf("Todos los campos son obligatorios")
+                val validationErrors = listOf("Por favor, complete todos los campos")
+                _loginEvents.emit(LoginEvent.ShowErrorDialog(validationErrors))
                 return@launch
             }
 
             val data = AuthLoginDto(
-                username = username,
-                password = password
+                username = _loginUiState.value.username,
+                password = _loginUiState.value.password
             )
 
             authRepository.login(data)
                 .onStart {
-                    _loginState.value = UiState.Loading
+                    _loginResult.value = UiState.Loading
                 }
                 .catch { e ->
-                    _loginState.value = UiState.Error(e.message ?: "Error desconocido")
+                    val errorMessage = e.message ?: "Error de conexión"
+                    _loginEvents.emit(LoginEvent.ShowErrorDialog(listOf(errorMessage)))
+                    _loginResult.value = UiState.Error(errorMessage)
                 }
                 .collect { result ->
                     result.onSuccess { data ->
                         userDataStore.saveUserData(authResponse = data)
-                        _loginState.value = UiState.Success(data)
+                        _loginResult.value = UiState.Success(data)
                     }
                     result.onFailure { e ->
-                        _loginState.value = UiState.Error(e.message ?: "Error desconocido")
+                        val errorMessage = e.message ?: "Error del servidor"
+                        _loginEvents.emit(LoginEvent.ShowErrorDialog(listOf(errorMessage)))
+                        _loginResult.value = UiState.Error(errorMessage)
                     }
                 }
         }

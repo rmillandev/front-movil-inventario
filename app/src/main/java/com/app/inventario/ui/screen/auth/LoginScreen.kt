@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.app.inventario.ui.components.CircularProgressBarBoxShadow
 import com.app.inventario.ui.components.customComponents.CustomButton
 import com.app.inventario.ui.components.customComponents.CustomDialog
@@ -50,28 +51,29 @@ fun LoginScreen(
 
     val authViewModel: AuthViewModel = hiltViewModel()
 
-    val loginState by authViewModel.loginState.collectAsState()
-    val erroresState by authViewModel.errores.collectAsState()
+    val loginResult by authViewModel.loginResult.collectAsState()
 
     var showCustomDialog by remember { mutableStateOf(false) }
     var erroresGenerales by remember { mutableStateOf(emptyList<String>()) }
     var isLoading by remember { mutableStateOf(false) }
 
-    LaunchedEffect(erroresState) {
-        if (erroresState.isNotEmpty()) {
-            erroresGenerales = erroresState
-            showCustomDialog = true
+    // Siempre llamar al el event del shared flow en la primera recomposicion del composable con Unit
+    LaunchedEffect(Unit) {
+        authViewModel.loginEvents.collect { event ->
+            when (event) {
+                is LoginEvent.ShowErrorDialog -> {
+                    erroresGenerales = event.messages
+                    showCustomDialog = true
+                }
+            }
         }
     }
 
-    LaunchedEffect(loginState) {
-        when (loginState) {
+    LaunchedEffect(loginResult) {
+        when (loginResult) {
             is UiState.Loading -> { isLoading = true }
             is UiState.Error -> {
                 isLoading = false
-                val error = (loginState as UiState.Error).message
-                erroresGenerales = listOf(error)
-                showCustomDialog = true
             }
             is UiState.Success -> {
                 isLoading = false
@@ -90,10 +92,7 @@ fun LoginScreen(
             title = "Error",
             messages = erroresGenerales.joinToString("\n"),
             type = DialogType.ERROR,
-            onClose = {
-                authViewModel.limpiarErrorres()
-                showCustomDialog = false
-            }
+            onClose = { showCustomDialog = false }
         )
     }
 
@@ -114,6 +113,9 @@ fun ResponsiveLoginContent(
     maxWidth: Dp,
     authViewModel: AuthViewModel
 ) {
+
+    val loginUiState by authViewModel.loginUiState.collectAsStateWithLifecycle()
+
     val isMobile = maxWidth < 600.dp
     val horizontalPadding = if (isMobile) 24.dp else 48.dp
     val verticalSpacing = if (isMobile) 16.dp else 24.dp
@@ -147,8 +149,8 @@ fun ResponsiveLoginContent(
             Spacer(Modifier.height(verticalSpacing * 2))
 
             CustomOutlinedTextField(
-                value = authViewModel.username,
-                onValueChange = { authViewModel.username = it },
+                value = loginUiState.username,
+                onValueChange = { authViewModel.updateUsername(it) },
                 label = "Username",
                 modifier = Modifier.fillMaxWidth()
             )
@@ -156,8 +158,8 @@ fun ResponsiveLoginContent(
             Spacer(Modifier.height(verticalSpacing))
 
             CustomOutlinedTextField(
-                value = authViewModel.password,
-                onValueChange = { authViewModel.password = it },
+                value = loginUiState.password,
+                onValueChange = { authViewModel.updatePassword(it) },
                 label = "Password",
                 keyboardType = KeyboardType.Password,
                 isPassword = true,
@@ -226,16 +228,16 @@ fun ResponsiveLoginContent(
                 Spacer(Modifier.height(verticalSpacing * 2))
 
                 CustomOutlinedTextField(
-                    value = authViewModel.username,
-                    onValueChange = { authViewModel.username = it },
+                    value = loginUiState.username,
+                    onValueChange = { authViewModel.updateUsername(it) },
                     label = "Username",
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(Modifier.height(verticalSpacing))
 
                 CustomOutlinedTextField(
-                    value = authViewModel.password,
-                    onValueChange = { authViewModel.password = it },
+                    value = loginUiState.password,
+                    onValueChange = { authViewModel.updatePassword(it) },
                     label = "Password",
                     keyboardType = KeyboardType.Password,
                     isPassword = true,
