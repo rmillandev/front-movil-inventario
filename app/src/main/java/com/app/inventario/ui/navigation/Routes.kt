@@ -11,4 +11,19 @@ sealed class Routes: NavKey {
     @Serializable
     data object Home: Routes()
 
+    @Serializable
+    data object Movimientos : Routes()
+
+    @Serializable
+    data object Productos : Routes()
+
+    @Serializable
+    data object Categorias : Routes()
+
+    @Serializable
+    data object Proveedores : Routes()
+
+    @Serializable
+    data object Usuarios : Routes()
+
 }
